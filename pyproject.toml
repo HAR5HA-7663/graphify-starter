@@ -1,0 +1,16 @@
+[project]
+name = "brain"
+version = "0.1.0"
+description = "Vector-indexed personal knowledge brain"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "chromadb>=0.5,<0.6",
+  "openai>=1.55,<2",
+  "tiktoken>=0.7",
+  "watchdog>=4.0",
+  "python-dotenv>=1.0",
+  "click>=8.1",
+]
+
+[tool.setuptools]
+py-modules = []

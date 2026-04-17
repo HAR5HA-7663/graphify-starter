@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.USERNAME.brain-watch</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>HOMEDIR/brain/.venv/bin/python</string>
+    <string>-m</string>
+    <string>scripts.watch</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>HOMEDIR/brain</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+  <key>StandardOutPath</key>
+  <string>HOMEDIR/brain/scripts/watch.log</string>
+  <key>StandardErrorPath</key>
+  <string>HOMEDIR/brain/scripts/watch.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>HOMEDIR/brain/.venv/bin:/usr/bin:/bin:/usr/local/bin</string>
+  </dict>
+</dict>
+</plist>

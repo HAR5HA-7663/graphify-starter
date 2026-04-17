@@ -1,0 +1,9 @@
+.venv/
+.chroma/
+.env
+scripts/*.log
+scripts/*.pid
+__pycache__/
+*.pyc
+.DS_Store
+.obsidian/workspace*.json
