@@ -1,75 +1,67 @@
 <!-- graphify:start -->
 ## Personal Brain — LLM Wiki + Vector Layer
 
-You maintain a persistent LLM Wiki at `~/brain/`. It has three layers: **brain_wiki** (synthesized markdown pages + Chroma vectors), **brain_raw** (raw source drops + Chroma vectors), and the **watcher daemon** keeping vectors in sync with disk. The whole system is nicknamed **Graphify**.
+You maintain a persistent LLM Wiki at `~/brain/`. Layers: **brain_wiki** (synthesized markdown pages + Chroma vectors), **brain_raw** (raw source drops + Chroma vectors), and the **watcher daemon** that keeps vectors in sync with disk. The whole system is nicknamed **Graphify**.
 
-At session start, always load:
-
-- `~/brain/wiki/index.md` — master catalog of all wiki pages.
-- `~/brain/wiki/overview.md` — high-level synthesis.
-
-**Do not** load every page under `~/brain/wiki/pages/` eagerly. Drill into specific pages only when the current task needs them.
+`~/brain/wiki/index.md` + `overview.md` are injected at session start by a `SessionStart` hook (`~/brain/scripts/session_context.sh`). If they are missing from context, read them yourself. Do **not** load every page under `wiki/pages/` eagerly — drill in only when the task needs it.
 
 ### Structure
 
 ```
 ~/brain/
-├── raw/              # drop zone — user writes here; assistant is READ-ONLY (policy)
+├── raw/              # drop zone — the user writes here; assistant is READ-ONLY (policy)
 ├── wiki/
 │   ├── index.md
 │   ├── overview.md
 │   ├── log.md        # append-only
 │   └── pages/        # one file per concept / entity / topic
-├── assets/
-├── scripts/          # Python: embed, watch, query, status, reembed_all
+├── journal/          # daily-sync capture — local only, never embedded or synced
+├── archive/          # backups + tombstoned originals — local only
+├── vectors/          # text export of .chroma (only when git sync is on)
+├── scripts/          # Python: embed, watch, query (+ daemon), status, jev, sync
 ├── .chroma/          # Chroma persist (git-ignored)
-└── .venv/            # Python env (git-ignored)
+└── .venv/
 ```
 
 ### Query priority (always in this order)
 
-When answering any question the user might have covered in the brain:
-
 1. **brain_wiki first** — run `/brain-query` (semantic over synthesized pages).
-2. **brain_raw fallback** — the script auto-falls through to raw chunks when wiki top score < threshold (0.75 for OpenAI).
-3. **Training memory last** — only if both brain layers miss (< 0.60). Label `[NOT IN BRAIN — training data]` on its own line.
+2. **brain_raw fallback** — the script falls through to raw chunks when the wiki top score is below the gate (`config.CONFIDENCE_THRESHOLDS`, 0.45 for OpenAI embeddings).
+3. **Training memory last** — only when the script returns `in_brain: false` / `verdict: "not_in_brain"`. Trust the script's verdict — never re-threshold. Label the answer `[NOT IN BRAIN — training data]` on its own line.
 
-**Always report which layer answered**:
-- `Answered from: brain_wiki (score 0.82)`
-- `Answered from: brain_raw (score 0.71)`
+**Always report which layer answered**: `Answered from: brain_wiki (score 0.82)` / `Answered from: brain_raw (score 0.71)`.
 
 **Never Grep/Glob over `~/brain/` if the brain has the answer.**
 
 ### Hard rules
 
-- `raw/` is policy write-protected for the assistant.
-- `log.md` is append-only.
+- `raw/` is write-protected for the assistant (policy). `log.md` is append-only.
 - Every new wiki page: `title`, `last_updated`, `tags`, ≥1 `[[cross-reference]]`.
 - Cite `[[slug]]` or `raw/<filename>` when answering from the brain.
-- Surface contradictions under a `## Contradictions` heading — never silent overwrite.
-- If `/brain-status` shows mixed `embedding_models`, refuse to query until `reembed_all.py --wipe`.
+- Contradictions go under a `## Contradictions` heading — never a silent overwrite.
+- If `/brain-status` shows mixed `embedding_models`, refuse to query until `reembed_all --wipe`.
+- Personal-life detail stays in `journal/` and memory, never in wiki pages (those are embedded via an API and may be synced).
 
 ### Privacy
 
-`BRAIN_PRIVACY_STRICT=1` in `~/brain/.env` blocks OpenAI embeddings — scripts fail closed at import. Check `/brain-status` for active mode.
+`BRAIN_PRIVACY_STRICT=1` in `~/brain/.env` blocks OpenAI embeddings and all Jev calls — scripts fail closed.
+
+### Jev judgement layer (optional)
+
+With `TYPESAFE_API_KEY` in `~/brain/.env`, `scripts/jev.py` adds three advisory checks, each falling back to plain behaviour on any failure: query rerank only when the cosine score is ambiguous (`verdict_source: "jev"`, `confidence: low` ⇒ read the full pages before answering), `scripts.ingest_check` (contradiction + sensitive-content flags before an ingest), `scripts.staleness` (per-page review intervals for `/wiki-lint`). Pages tagged `private` are never sent. `BRAIN_JEV=off` disables it.
 
 ### Commands / Skills
 
-- `/wiki-ingest` — process a file from `raw/` into wiki pages; embeds into `brain_wiki`.
-- `/wiki-query` — literal slug lookups (when you already know the slug).
-- `/wiki-lint` — health check on the wiki.
-- `/wiki-save` — file a synthesized answer as a new wiki page; embeds it.
+- `/wiki-ingest` — process a file from `raw/` into wiki pages.
+- `/wiki-query` — literal slug lookups.
+- `/wiki-lint` — health check (orphans, broken links, stale pages, contradictions).
+- `/wiki-save` — file a synthesized answer as a new wiki page.
 - `/brain-query` — semantic two-tier retrieval (wiki → raw).
 - `/brain-status` — vector store + watcher health.
 
-Skills live at `~/.claude/skills/{wiki-ingest,wiki-query,wiki-lint,wiki-save,brain-query,brain-status}/SKILL.md`.
+### Daemons
 
-### Daemon
-
-`~/Library/LaunchAgents/com.USERNAME.brain-watch.plist` runs `scripts/watch.py`. Manage:
-```
-launchctl load   ~/Library/LaunchAgents/com.USERNAME.brain-watch.plist
-launchctl unload ~/Library/LaunchAgents/com.USERNAME.brain-watch.plist
-launchctl list   | grep brain-watch
-```
+- Watcher: `~/Library/LaunchAgents/com.USERNAME.brain-watch.plist` (`scripts/watch.py`, 2 s debounce, hash-dedup).
+- Query daemon: started on demand by `scripts/query.py`, exits after 15 min idle (`BRAIN_QUERY_DAEMON=off` to disable).
+- Optional: `com.USERNAME.daily-brain-sync` (nightly transcript distillation) and `com.USERNAME.brain-sync` (git sync every 10 min).
 <!-- graphify:end -->

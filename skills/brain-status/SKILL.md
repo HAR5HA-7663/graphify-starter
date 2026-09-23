@@ -9,23 +9,23 @@ description: Show health of the ~/brain/ vector store — collection counts (bra
 
 1. Run via Bash:
    ```
-   cd /Users/HAR5HA/brain && .venv/bin/python -m scripts.status
+   cd ~/brain && .venv/bin/python -m scripts.status
    ```
 2. Show the output verbatim inside a fenced code block.
 
 3. Escalate the following conditions with a direct recommendation:
    - **Unembedded files present** (raw_pending > 0 or wiki_pending > 0) → offer to run:
      ```
-     cd /Users/HAR5HA/brain && .venv/bin/python -m scripts.reembed_all
+     cd ~/brain && .venv/bin/python -m scripts.reembed_all
      ```
    - **Watcher not running** (`pid: NOT RUNNING` in output) → suggest:
      ```
-     launchctl unload ~/Library/LaunchAgents/com.harsha.brain-watch.plist
-     launchctl load ~/Library/LaunchAgents/com.harsha.brain-watch.plist
+     launchctl unload ~/Library/LaunchAgents/com.$(id -un).brain-watch.plist
+     launchctl load ~/Library/LaunchAgents/com.$(id -un).brain-watch.plist
      ```
    - **Mixed `embedding_models` in a collection** (warning line in output) → this means dim-mismatch risk; recommend:
      ```
-     cd /Users/HAR5HA/brain && .venv/bin/python -m scripts.reembed_all --wipe
+     cd ~/brain && .venv/bin/python -m scripts.reembed_all --wipe
      ```
      Warn that querying in this state returns junk results.
    - **`PRIVACY_STRICT=on` + OpenAI model** (fatal line in output) → tell the user to either unset `BRAIN_PRIVACY_STRICT` in `~/brain/.env` OR switch `EMBED_MODEL` in `scripts/config.py` to a local provider.

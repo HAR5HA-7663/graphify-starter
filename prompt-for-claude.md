@@ -6,7 +6,7 @@ Paste this whole message into Claude Code after cloning the repo. It assumes you
 
 I have cloned the graphify-starter repo to my machine. Set it up end-to-end:
 
-1. From the repo root, run `./install.sh`. This creates `~/brain/`, a Python venv, installs deps, writes skills into `~/.claude/skills/`, merges the graphify block into `~/.claude/CLAUDE.md`, installs the launchd plist at `~/Library/LaunchAgents/com.<myusername>.brain-watch.plist`, and registers the `brain-fs` filesystem MCP server under user scope.
+1. From the repo root, run `./install.sh`. This creates `~/brain/`, a Python venv, installs deps, writes skills into `~/.claude/skills/`, merges the graphify block into `~/.claude/CLAUDE.md`, adds the SessionStart context hook to `~/.claude/settings.json`, installs the watcher at `~/Library/LaunchAgents/com.<myusername>.brain-watch.plist`, and registers the `brain-fs` filesystem MCP server under user scope. Ask me first whether I also want `--daily-sync` (nightly session distillation) and `--sync-remote <private repo>` (multi-device sync); only add them if I say yes. If I want sync, the repo must be private — check with `gh repo view --json visibility` before pushing anything.
 
 2. If the installer warns that `~/brain/.env` is missing, I'll paste my OpenAI API key below — use the Write tool to put it there with chmod 600:
 
@@ -20,7 +20,9 @@ OPENAI_API_KEY=sk-REPLACE_ME_PASTE_HERE
    - `cd ~/brain && .venv/bin/python -m scripts.status` — expect two collections listed, watcher PID present.
    - `cd ~/brain && .venv/bin/python -m scripts.query "hello"` — expect JSON with a `layer` field.
    - `launchctl list | grep brain-watch` — expect a PID.
+   - `cd ~/brain && .venv/bin/python -m unittest discover -s scripts/tests -t .` — expect OK.
    - In this Claude Code session, test `/brain-status` and `/brain-query`.
+   - Tell me to open `~/brain` as a vault in Obsidian to see the graph.
 
 5. Show me the final folder tree under `~/brain/` and report any skipped verification steps with the reason.
 
@@ -28,6 +30,6 @@ OPENAI_API_KEY=sk-REPLACE_ME_PASTE_HERE
 
 Rules:
 - Do not invent wiki content for me — leave `wiki/pages/` empty, seed only `index.md`, `overview.md`, `log.md` from the repo defaults.
-- Do not commit my `.env` or `.chroma/` anywhere.
+- Do not commit my `.env`, `.chroma/`, `journal/` or `archive/` anywhere, and never push the brain to a public repo.
 - If the `claude` CLI isn't available, print the manual `claude mcp add` command and continue.
 - If I'm not on macOS, stop and say so — the launchd plist is macOS-only.

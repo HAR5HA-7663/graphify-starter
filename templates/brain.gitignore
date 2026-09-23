@@ -1,0 +1,23 @@
+# Written by graphify-starter's install.sh. Only used if you turn ~/brain into a git repo
+# for multi-device sync (install.sh --sync-remote). vectors/ IS tracked (text export).
+.venv/
+.chroma/
+.chroma*/
+.env
+*.log
+*.bak-*
+__pycache__/
+*.pyc
+.DS_Store
+.obsidian/workspace*.json
+.query.*
+.brain-sync.lock.d/
+triage_areas.json
+
+# personal / sensitive layers — never leave this machine
+journal/
+archive/
+scripts/.daily-sync*
+scripts/.win-*
+scripts/daily_sync_report.md
+scripts/.staleness_cache.json

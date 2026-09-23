@@ -1,9 +1,9 @@
-.venv/
+__pycache__/
 .chroma/
+.DS_Store
 .env
+.obsidian/workspace*.json
+.venv/
+*.pyc
 scripts/*.log
 scripts/*.pid
-__pycache__/
-*.pyc
-.DS_Store
-.obsidian/workspace*.json

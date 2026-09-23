@@ -7,7 +7,7 @@ description: Persist a synthesized answer (from /brain-query, /wiki-query, or mi
 
 ## Workflow
 
-1. **Pick a slug.** Kebab-case, short, topic-focused (e.g., `dnc-compliance`, `bevri-pricing-tiers`).
+1. **Pick a slug.** Kebab-case, short, topic-focused (e.g., `api-rate-limits`, `pricing-tiers`).
    - Check `~/brain/wiki/index.md` and `~/brain/wiki/pages/*.md` for collisions.
    - If a page with this slug already exists, switch to **update mode** — preserve existing cross-refs, bump `last_updated`, surface any contradictions in a `## Contradictions` section.
 
@@ -37,7 +37,7 @@ description: Persist a synthesized answer (from /brain-query, /wiki-query, or mi
 
 5. **Embed into brain_wiki.** Run:
    ```
-   cd /Users/HAR5HA/brain && .venv/bin/python -m scripts.embed /Users/HAR5HA/brain/wiki/pages/<slug>.md --collection brain_wiki
+   cd ~/brain && .venv/bin/python -m scripts.embed ~/brain/wiki/pages/<slug>.md --collection brain_wiki
    ```
    Idempotent — safe to re-run. The launchd watcher will also catch the write and re-embed ~2s later; running explicitly guarantees the vector is live before the user's next `/brain-query`.
 

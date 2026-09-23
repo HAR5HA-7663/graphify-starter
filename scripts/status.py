@@ -63,7 +63,7 @@ def _watcher_health() -> dict:
     exit_status = None
     try:
         out = subprocess.run(
-            ["launchctl", "list", "com.harsha.brain-watch"],
+            ["launchctl", "list", config.WATCH_LABEL],
             capture_output=True, text=True, timeout=3,
         )
         if out.returncode == 0:
@@ -115,12 +115,12 @@ def render_text(report: dict) -> str:
     lines.append("")
 
     w = report["watcher"]
-    lines.append("[watcher: com.harsha.brain-watch]")
+    lines.append(f"[watcher: {config.WATCH_LABEL}]")
     if w["pid"]:
         lines.append(f"  pid:          {w['pid']}   exit={w['last_exit_status'] or 'ok'}")
     else:
         lines.append("  pid:          NOT RUNNING")
-        lines.append("  → launchctl unload ~/Library/LaunchAgents/com.harsha.brain-watch.plist && launchctl load ~/Library/LaunchAgents/com.harsha.brain-watch.plist")
+        lines.append(f"  → launchctl unload ~/Library/LaunchAgents/{config.WATCH_LABEL}.plist && launchctl load ~/Library/LaunchAgents/{config.WATCH_LABEL}.plist")
     if w["log_mtime"]:
         age_s = int(datetime.now(tz=timezone.utc).timestamp()) - w["log_mtime"]
         lines.append(f"  last log:     {age_s}s ago")

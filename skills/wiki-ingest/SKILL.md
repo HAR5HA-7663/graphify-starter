@@ -22,7 +22,15 @@ The user provides a path inside `~/brain/raw/` (PDF, markdown, screenshot, link,
    - `last_updated` (today's date, ISO)
    - `tags` (list)
    - At least one cross-reference (`[[other-slug]]`) to an existing page.
-6. **Flag contradictions** with existing pages explicitly in the page body under a `## Contradictions` heading. Do not silently overwrite.
+6. **Flag contradictions** with existing pages explicitly in the page body under a `## Contradictions` heading. Do not silently overwrite. Don't rely on noticing them while reading — run the checker on the source before writing pages (step 5), and again on any page you drafted from scratch:
+   ```
+   cd ~/brain && .venv/bin/python -m scripts.ingest_check raw/<path>.md
+   ```
+   It compares every chunk with its nearest existing wiki chunks (a few seconds, markdown only) and returns JSON:
+   - `conflicts[]` — each names the existing page + heading and gives both excerpts with a probability `p`. Read both passages; every real conflict **must** land under `## Contradictions` on the affected page. Dismiss a flag only after reading it (restatements and added detail are the usual false positives).
+   - `sensitive[]` — `financial_detail`, `third_party_private_data`, `credentials`. Do **not** promote that content into the wiki: summarise without the figures/identifiers, and tell the user what was left out. Financial account detail never goes into the wiki.
+   - `skipped` — privacy-strict mode, Jev off, or the file is tagged `private`. Proceed on your own careful reading, as before.
+   The checker is advisory: an empty result is not proof there are no contradictions.
 7. **Update `~/brain/wiki/index.md`** — add one-line entries for any new pages; update `last_updated`.
 8. **Append to `~/brain/wiki/log.md`** (never edit prior entries):
    ```
@@ -35,7 +43,7 @@ The user provides a path inside `~/brain/raw/` (PDF, markdown, screenshot, link,
 9. **Attachments:** binary assets referenced from pages should be copied to `~/brain/assets/` and linked with relative paths. Never copy into `raw/`.
 10. **Embed into brain_wiki.** For each wiki page created or updated in step 5, run:
     ```
-    cd /Users/HAR5HA/brain && .venv/bin/python -m scripts.embed /Users/HAR5HA/brain/wiki/pages/<slug>.md --collection brain_wiki
+    cd ~/brain && .venv/bin/python -m scripts.embed ~/brain/wiki/pages/<slug>.md --collection brain_wiki
     ```
     Idempotent (skips if content unchanged). The launchd watcher also catches the write, but running explicitly guarantees the vector is live before the user's next `/brain-query`.
     Note: raw/ files are auto-embedded into `brain_raw` by the watcher on drop — this skill does not embed raw.

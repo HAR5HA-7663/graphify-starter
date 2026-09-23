@@ -1,0 +1,2 @@
+wiki/log.md merge=union
+vectors/** -diff linguist-generated=true

@@ -24,9 +24,13 @@ def get_client() -> Any:
 def get_collection(name: str):
     if name not in config.ALLOWED_COLLECTIONS:
         raise ValueError(f"Unknown collection: {name}")
+    # sync_threshold: Chroma only persists the HNSW index every N writes (default 1000) and
+    # replays its write-ahead log on every open until then. This brain holds < 1000 chunks,
+    # so the index never persisted and every query process rebuilt it from the log (~1 s).
+    # Applies at creation only — existing collections need reembed_all on a fresh .chroma.
     return get_client().get_or_create_collection(
         name=name,
-        metadata={"hnsw:space": "cosine"},
+        metadata={"hnsw:space": "cosine", "hnsw:sync_threshold": 100, "hnsw:batch_size": 100},
     )
 
 

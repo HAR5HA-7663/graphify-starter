@@ -11,7 +11,7 @@ Answer questions using only the wiki as source-of-truth. Training data is a last
 
 1. **Read `~/brain/wiki/index.md`** to identify candidate pages. Also read `~/brain/wiki/overview.md` if not already loaded.
 2. **Read the relevant pages directly** from `~/brain/wiki/pages/`. Follow `[[cross-reference]]` links when needed for full context.
-3. **Answer using only what's in the wiki.** Cite every claim inline with the page slug in square brackets, e.g., `[[bevri-ai]]`.
+3. **Answer using only what's in the wiki.** Cite every claim inline with the page slug in square brackets, e.g., `[[project-alpha]]`.
 4. **If the wiki doesn't cover it:** say so explicitly. Offer either:
    - answering from general knowledge, labeled `[NOT IN WIKI — training data]`, or
    - suggesting the user drop a source in `raw/` so `/wiki-ingest` can add it.

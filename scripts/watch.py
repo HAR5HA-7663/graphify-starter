@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import logging.handlers
 import signal
-import sys
 import threading
 import time
 from pathlib import Path
@@ -33,9 +32,15 @@ def _setup_logging() -> None:
         config.LOG_PATH, maxBytes=10_000_000, backupCount=5
     )
     rot.setFormatter(fmt)
-    stream = logging.StreamHandler(sys.stdout)
-    stream.setFormatter(fmt)
-    logging.basicConfig(level=logging.INFO, handlers=[rot, stream])
+    logging.basicConfig(level=logging.INFO, handlers=[rot])
+
+    for noisy in (
+        "chromadb.telemetry",
+        "chromadb.telemetry.product",
+        "chromadb.telemetry.product.posthog",
+        "posthog",
+    ):
+        logging.getLogger(noisy).setLevel(logging.CRITICAL)
 
 
 IGNORED_PARTS = {".chroma", ".venv", ".obsidian", "assets", "__pycache__"}
@@ -154,6 +159,13 @@ def _worker(queue: Queue) -> None:
                 else:
                     log.info("RESULT %s %s", collection, r)
             elif kind == "delete":
+                if path.exists():
+                    # Atomic saves (write temp, rename over the original) emit a delete for a
+                    # file that is still there. Deleting here wiped freshly embedded pages, so
+                    # treat it as a change: embed_file is idempotent and skips unchanged files.
+                    r = embed_mod.embed_file(path, collection)
+                    log.info("REPLACED %s %s status=%s", collection, r.get("source_rel") or path.name, r.get("status"))
+                    continue
                 store.delete_by_source(collection, str(path.resolve()))
                 log.info("DELETE %s %s", collection, path)
         except Exception as e:
